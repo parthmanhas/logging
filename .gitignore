@@ -1,0 +1,10 @@
+google_sheets_creds.*
+__*
+.vscode
+token.*
+*cred*
+last_7_days
+example_response_sheet_get.*
+.env
+CATEGORIES_MAPPING.*
+response_sheet_get.*
