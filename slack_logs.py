@@ -3,6 +3,12 @@ from slack_bolt.adapter.socket_mode import SocketModeHandler
 from google_sheets_store import main as add_row_to_google_sheet
 import datetime
 import os
+from google_sheets_fetch import main as fetch_google_sheet
+import json
+import pandas as pd
+from datetime import date
+
+filename = 'response_sheet_get.json'
 
 with open('.env') as f:
     for line in f:
@@ -24,7 +30,7 @@ app = App(token=SLACK_BOT_TOKEN)
 # To learn available listener arguments,
 # visit https://slack.dev/bolt-python/api-docs/slack_bolt/kwargs_injection/args.html
 
-
+# log to google sheet in format action:::description (time is collected by slack automatically)
 @app.message(":::")
 def log_to_google_sheet(message, say):
     print('logging event to google sheets')
@@ -47,7 +53,63 @@ def log_to_google_sheet(message, say):
     except Exception as e:
         print(e)
         say(f'Error: {e}')
+
+@app.message("get:total_pomo_count_today")    
+def get_total_pomo_today(message, say):
+    # load json stored in disk
+    # load json stored in disk
+    with open(rf'C:\Users\parth\Desktop\self_logging\{filename}') as f:
+        data = json.load(f)
+        data = data['values']
+        analysis_df = pd.DataFrame(columns=['datetime', 'action', 'description'])
+
+        for row in data:
+        # skip heading
+            if 'Date' in row[0]:
+                continue
+            analysis_df = pd.concat([analysis_df, pd.DataFrame({'datetime': [row[0]], 'action': [row[1]], 'description': [row[2]]})])
+
+        analysis_df['datetime'] = pd.to_datetime(analysis_df['datetime'], format='%Y-%m-%d %H:%M:%S')
+        analysis_df['date'] = analysis_df['datetime'].dt.date
+        analysis_df = analysis_df[['date', 'action', 'description']]
+        today = date.today()
+        today_df = analysis_df[analysis_df['date'] == today]
+        pomo_today = today_df[today_df['action'] == 'pomo']
+        count = pomo_today['action'].value_counts()[0]
+        say(f"pomo count for date : {today.strftime('%Y-%m-%d')} = {count}")
+
+@app.message("get:total_pomo_description_today")    
+def get_total_pomo_today(message, say):
+    # load json stored in disk
+    # load json stored in disk
+    with open(rf'C:\Users\parth\Desktop\self_logging\{filename}') as f:
+        data = json.load(f)
+        data = data['values']
+        analysis_df = pd.DataFrame(columns=['datetime', 'action', 'description'])
+
+        for row in data:
+        # skip heading
+            if 'Date' in row[0]:
+                continue
+            analysis_df = pd.concat([analysis_df, pd.DataFrame({'datetime': [row[0]], 'action': [row[1]], 'description': [row[2]]})])
+
+        analysis_df['datetime'] = pd.to_datetime(analysis_df['datetime'], format='%Y-%m-%d %H:%M:%S')
+        analysis_df['date'] = analysis_df['datetime'].dt.date
+        analysis_df = analysis_df[['date', 'action', 'description']]
+        today = date.today()
+        today_df = analysis_df[analysis_df['date'] == today]
+        pomo_today = today_df[today_df['action'] == 'pomo']
+        say(pomo_today['description'].to_json(orient="records"))
+
     
+
+@app.message("get:foods_today")
+def get_unique_foods_today(message, say):
+    pass
+
+@app.message("get:expense_today")
+def get_expense_today(message, say):
+    pass
 
 # Start your app
 if __name__ == "__main__":

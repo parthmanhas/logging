@@ -88,8 +88,9 @@ def combine_foods(foods_arr):
 
     return updated_foods
 
+filename = 'example_response_sheet_get.json'
 
-with open(r'C:\Users\parth\Desktop\self_logging\example_response_sheet_get.json', 'r') as f:
+with open(rf'C:\Users\parth\Desktop\self_logging\{filename}', 'r') as f:
     # Load the JSON data into a Python object
     data = json.load(f)
     data = data['values']
@@ -98,10 +99,8 @@ with open(r'C:\Users\parth\Desktop\self_logging\example_response_sheet_get.json'
         # skip heading
         if 'Date' in row[0]:
             continue
-        analysis_df = pd.concat([analysis_df, pd.DataFrame(
-            {'datetime': [row[0]], 'action': [row[1]], 'description': [row[2]]})])
-    analysis_df['datetime'] = pd.to_datetime(
-        analysis_df['datetime'], format='%Y-%m-%d %H:%M:%S')
+        analysis_df = pd.concat([analysis_df, pd.DataFrame({'datetime': [row[0]], 'action': [row[1]], 'description': [row[2]]})])
+    analysis_df['datetime'] = pd.to_datetime(analysis_df['datetime'], format='%Y-%m-%d %H:%M:%S')
 #     analysis_df['datetime'] = analysis_df['datetime'].dt.tz_localize('UTC')
 #     analysis_df['datetime'] = analysis_df['datetime'].dt.tz_convert('Asia/Kolkata')
     analysis_df['date'] = analysis_df['datetime'].dt.date
